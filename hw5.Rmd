@@ -31,9 +31,14 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
 # Problem 2
 
-
+Description of raw data:
 ```{r}
-
+homicide_data=
+  read_csv("./data/homicide-data.csv")%>%
+  janitor::clean_names()%>%
+  mutate(reported_date = lubridate::ymd(reported_date))%>%
+  drop_na(reported_date)
 ```
+The `homicide_data` has `r nrow(homicide_data)` observations and `r ncol(homicide_data)` variables and tells us about homicides in 50 large U.S. cities a given year from years `r range(homicide_data$reported_date)[1]` to `r range(homicide_data$reported_date)[2]`. The variables include victim's first name, victim's second name, victim's age, victim's sex, city, state, latitude, longitude, and disposition.
 
 # Problem 3
