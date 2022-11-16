@@ -67,4 +67,47 @@ save(baltimore_test, file="baltimore_test.RData")
     ##   <chr>           <dbl>    <dbl>    <dbl>
     ## 1 Baltimore,MD    0.646    0.628    0.663
 
+\###Prop.test for each cities prop.test for each cities in dataset and
+extract both the proportion of unsolved homicides and the confidence
+interval for each
+
+``` r
+prop_test=
+  homicide_df%>%
+  mutate(prop_test = map2(unsolved_homicides, total_homicides, ~prop.test(.x, .y)%>%
+  broom::tidy()))%>%
+  unnest()
+
+prop_test%>%
+ select(city_state, estimate, "CI_lower" = conf.low, "CI_upper" = conf.high)
+```
+
+    ## # A tibble: 51 × 4
+    ##    city_state      estimate CI_lower CI_upper
+    ##    <chr>              <dbl>    <dbl>    <dbl>
+    ##  1 Chicago,IL         0.736    0.724    0.747
+    ##  2 Philadelphia,PA    0.448    0.430    0.466
+    ##  3 Houston,TX         0.507    0.489    0.526
+    ##  4 Baltimore,MD       0.646    0.628    0.663
+    ##  5 Detroit,MI         0.588    0.569    0.608
+    ##  6 Los Angeles,CA     0.490    0.469    0.511
+    ##  7 St. Louis,MO       0.540    0.515    0.564
+    ##  8 Dallas,TX          0.481    0.456    0.506
+    ##  9 Memphis,TN         0.319    0.296    0.343
+    ## 10 New Orleans,LA     0.649    0.623    0.673
+    ## # … with 41 more rows
+
+\###Plot of estimates and CIs for each city
+
+``` r
+prop_test%>%
+  arrange(desc(estimate))%>%
+ ggplot(aes(group = city_state, y = reorder(city_state, estimate))) + 
+ geom_point(aes(x = estimate)) +
+ geom_errorbar(aes(xmin = conf.low, xmax = conf.high)) +
+ labs(y = "City,State", x = "Estimate and 95% CI",title = "Unsolved Homicides")
+```
+
+<img src="hw5_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
+
 # Problem 3

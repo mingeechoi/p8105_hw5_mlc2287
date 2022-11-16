@@ -74,6 +74,29 @@ save(baltimore_test, file="baltimore_test.RData")
   select(city_state, estimate, "CI_lower" = conf.low, "CI_upper" = conf.high)
 ```
 
+###Prop.test for each cities
+prop.test for each cities in dataset and extract both the proportion of unsolved homicides and the confidence interval for each
+```{r}
+prop_test=
+  homicide_df%>%
+  mutate(prop_test = map2(unsolved_homicides, total_homicides, ~prop.test(.x, .y)%>%
+  broom::tidy()))%>%
+  unnest()
+
+prop_test%>%
+ select(city_state, estimate, "CI_lower" = conf.low, "CI_upper" = conf.high)
+```
+
+###Plot of estimates and CIs for each city
+```{r}
+prop_test%>%
+  arrange(desc(estimate))%>%
+ ggplot(aes(group = city_state, y = reorder(city_state, estimate))) + 
+ geom_point(aes(x = estimate)) +
+ geom_errorbar(aes(xmin = conf.low, xmax = conf.high)) +
+ labs(y = "City,State", x = "Estimate and 95% CI",title = "Unsolved Homicides")
+```
+
 # Problem 3
 
 
