@@ -30,10 +30,11 @@ about homicides in 50 large U.S. cities a given year from years
 victim’s second name, victim’s age, victim’s sex, city, state, latitude,
 longitude, and disposition.
 
-\###Create variable and summarize Create city_state variable and
-summarize within cities to obtain the total number of homicides and the
-number of unsolved homicides (those for which disposition is “closed
-without arrest” or “open/no arrest”)
+\###Create variable and summarize
+
+Create city_state variable and summarize within cities to obtain the
+total number of homicides and the number of unsolved homicides (those
+for which disposition is “closed without arrest” or “open/no arrest”)
 
 ``` r
 homicide_df=
@@ -67,9 +68,10 @@ save(baltimore_test, file="baltimore_test.RData")
     ##   <chr>           <dbl>    <dbl>    <dbl>
     ## 1 Baltimore,MD    0.646    0.628    0.663
 
-\###Prop.test for each cities prop.test for each cities in dataset and
-extract both the proportion of unsolved homicides and the confidence
-interval for each
+\###Prop.test for each cities
+
+Prop.test for each cities in dataset and extract both the proportion of
+unsolved homicides and the confidence interval for each
 
 ``` r
 prop_test=
@@ -111,3 +113,48 @@ prop_test%>%
 <img src="hw5_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
 
 # Problem 3
+
+\###t.test and estimate and p-value
+
+``` r
+sim_function = function(mu = 0) {
+  sample = tibble(rnorm(n = 30, mean = mu, sd = 5))
+  
+  result = t.test(sample) %>% 
+    broom::tidy() %>% 
+    select(estimate,p.value)
+  
+  result
+}
+sim_function()
+```
+
+    ## # A tibble: 1 × 2
+    ##   estimate p.value
+    ##      <dbl>   <dbl>
+    ## 1    0.412   0.629
+
+\###t.test with different means
+
+``` r
+means_sample = 
+  expand_grid(
+    sample_size = 30,
+    mean = 1:6,
+    iter = 1:5000)%>%
+  mutate(estimate_df = map(mean, sim_function))%>%
+  unnest(estimate_df)
+```
+
+\###Plot showing power
+
+``` r
+means_sample %>%
+  group_by(mean) %>%
+  summarize(power = sum(p.value < 0.05)/5000) %>%
+  ggplot(aes(x = mean,y = power)) +
+  geom_point() + geom_path() +
+  labs(x = "Mean",y = "Power",title = "Power with different means")
+```
+
+<img src="hw5_files/figure-gfm/unnamed-chunk-8-1.png" width="90%" />
