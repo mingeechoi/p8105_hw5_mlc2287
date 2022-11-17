@@ -107,12 +107,18 @@ prop_test%>%
  ggplot(aes(group = city_state, y = reorder(city_state, estimate))) + 
  geom_point(aes(x = estimate)) +
  geom_errorbar(aes(xmin = conf.low, xmax = conf.high)) +
- labs(y = "City,State", x = "Estimate and 95% CI",title = "Unsolved Homicides")
+ labs(y = "City,State", x = "Estimated Proportions and 95% CI",title = "Unsolved Homicides")
 ```
 
 <img src="hw5_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
 
 # Problem 3
+
+### 1. Generate 5000 samples
+
+``` r
+samples = rerun(5000,rnorm(n = 30,mean = 0,sd = 5))
+```
 
 \###t.test and estimate and p-value
 
@@ -132,7 +138,7 @@ sim_function()
     ## # A tibble: 1 × 2
     ##   estimate p.value
     ##      <dbl>   <dbl>
-    ## 1    0.412   0.629
+    ## 1    0.520   0.549
 
 \###t.test with different means
 
@@ -154,7 +160,37 @@ means_sample %>%
   summarize(power = sum(p.value < 0.05)/5000) %>%
   ggplot(aes(x = mean,y = power)) +
   geom_point() + geom_path() +
-  labs(x = "Mean",y = "Power",title = "Power with different means")
+  labs(x = "True Mean",y = "Power",title = "Power with different means")
 ```
 
-<img src="hw5_files/figure-gfm/unnamed-chunk-8-1.png" width="90%" />
+<img src="hw5_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" />
+
+From this graph, we can clearly see that as effect size increases, power
+increases.
+
+\###Average estimate for all data vs average estimage for rejected
+
+``` r
+full_estimate = means_sample %>% 
+  group_by(mean) %>% 
+  summarize(average_estimate = mean(estimate,na.rm = T))
+
+rejected_estimate = means_sample %>% 
+   group_by(mean) %>% 
+  filter(p.value < 0.05) %>% 
+  summarize(average_estimate = mean(estimate,na.rm = T))
+
+ggplot(full_estimate,aes(x = mean, y = average_estimate)) +
+  geom_line(data = full_estimate, aes(colour = "blue")) +
+  geom_line(data = rejected_estimate, aes(colour = "red")) +
+  scale_color_manual(name = " ", values = c("blue" = "blue", "red" = "red"),
+ labels = c('All Estimates','Rejected Estimates'))+
+  geom_point(data = full_estimate,colour = "black") +
+  geom_point(data = rejected_estimate,colour = "black") +
+  labs(x = "True Mean",y = "Average Estimate",title = "All vs. Rejected Estimates")
+```
+
+<img src="hw5_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" />
+
+The sample average of myu hat across tests for which the null is
+rejected approximately equal to the true value of myu once it reaches 4.
